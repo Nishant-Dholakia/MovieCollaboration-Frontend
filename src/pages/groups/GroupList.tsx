@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import GroupCard from "./GroupCard";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/axios";
-import type { Group, GroupMember } from "../../interfaces/interfaces";
+import type { Group } from "../../interfaces/interfaces";
 
 
 const GroupsListPage: React.FC = () => {
@@ -37,7 +37,7 @@ const GroupsListPage: React.FC = () => {
   };
 
   const handleCreateGroup = () => {
-    // navigate("/groups/create");
+    navigate("/groups/create");
     console.log("Navigate to create group page");
   };
 

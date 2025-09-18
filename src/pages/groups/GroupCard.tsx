@@ -24,7 +24,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onClick }) => {
     return text.substring(0, maxLength).trim() + "...";
   };
 
-  return (
+   return (
     <div
       onClick={onClick}
       className="bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-2xl hover:shadow-red-900/20 transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
@@ -34,8 +34,8 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onClick }) => {
         <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
           <Users className="w-6 h-6 text-white" />
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors duration-200 capitalize line-clamp-1">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors duration-200 capitalize line-clamp-2 leading-tight break-words word-break">
             {group.name}
           </h3>
           <p className="text-gray-400 text-sm">{group.members.length} member{group.members.length !== 1 ? 's' : ''}</p>
@@ -81,10 +81,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onClick }) => {
       
       {/* Group Footer */}
       <div className="flex items-center justify-between text-xs text-gray-500">
-        {/* <div className="flex items-center gap-1">
-          <Calendar className="w-3 h-3" />
-          <span>Created {formatDate(group.createdAt)}</span>
-        </div> */}
+        
         <div className="flex items-center gap-1">
           <Crown className="w-3 h-3" />
           <span>{group.admins.length} admin{group.admins.length !== 1 ? 's' : ''}</span>

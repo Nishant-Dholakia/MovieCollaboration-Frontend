@@ -49,12 +49,14 @@ const Header: React.FC = () => {
           ) : (
             <>
               <button
+              type="button"
                 onClick={() => navigate("/profile")}
                 className="text-white font-semibold hover:text-red-400 transition-colors"
               >
                 {user.username}
               </button>
               <button
+                type="button"
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-white text-sm transition-colors"
               >
