@@ -1,10 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.tsx"
 import { Users, Crown } from "lucide-react"
 
-interface Member {
+export interface Member {
   id: string
   name: string
   avatar: string

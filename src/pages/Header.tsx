@@ -37,7 +37,7 @@ const Header: React.FC = () => {
           {user && (
             <>
               <Link to="/groups" className="hover:text-red-400 transition-colors">Groups</Link>
-              <Link to="/watchlist" className="hover:text-red-400 transition-colors">Watchlist</Link>
+              <Link to="/search" className="hover:text-red-400 transition-colors">Search Movies</Link>
             </>
           )}
 

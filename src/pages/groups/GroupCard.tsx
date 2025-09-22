@@ -1,6 +1,6 @@
 import React from "react";
-import { Users, Crown, Calendar } from "lucide-react";
-import type { Group, GroupMember } from "../../interfaces/interfaces";
+import { Users, Crown} from "lucide-react";
+import type { Group } from "@/interfaces/interfaces";
 
 
 

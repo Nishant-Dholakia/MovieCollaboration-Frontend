@@ -1,92 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useContext } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { GroupHeader } from "./components/group-header"
-import { MembersSidebar } from "./components/members-sidebar"
-import { MovieCard } from "./components/movie-card"
-import { SeriesCard } from "./components/series-card"
+import { GroupHeader } from "./components/GroupHeader"
+import { MembersSidebar } from "./components/MembersSidebar"
+import { MovieCard } from "./components/MovieCard"
+import { SeriesCard } from "./components/SeriesCard"
+import api from "@/api/axios"
+import type { Group, MovieListItem, SeriesListItem, User } from  "@/interfaces/interfaces"
+import { AuthContext } from "@/context/AuthContext"
 
-// Mock data - replace with actual API calls
-const mockGroupData = {
-  id: "1",
-  name: "Avengers Squad",
-  description: "Group of Marvel fans binge-watching all MCU movies",
-  members: [
-    { id: "1", name: "Tony Stark", avatar: "/tony-stark.jpg", isAdmin: true },
-    { id: "2", name: "Steve Rogers", avatar: "/steve-rogers.jpg", isAdmin: true },
-    { id: "3", name: "Natasha Romanoff", avatar: "/natasha-romanoff.jpg", isAdmin: false },
-    { id: "4", name: "Bruce Banner", avatar: "/bruce-banner.jpg", isAdmin: false },
-    { id: "5", name: "Thor Odinson", avatar: "/mighty-god-of-thunder.png", isAdmin: false },
-  ],
-  watchlist: {
-    movieList: [
-      {
-        movieId: {
-          id: "1",
-          title: "Iron Man",
-          year: 2008,
-          poster: "/iron-man-movie-poster.jpg",
-        },
-        userProgress: [
-          { userId: "1", completed: true, reactions: ["🔥", "❤️"], pollRating: 5 },
-          { userId: "2", completed: true, reactions: ["🔥"], pollRating: 4 },
-          { userId: "3", completed: true, reactions: ["❤️"], pollRating: 5 },
-          { userId: "4", completed: false, reactions: [], pollRating: null },
-          { userId: "5", completed: false, reactions: [], pollRating: null },
-        ],
-        comments: [
-          { userId: "1", text: "This started it all! Amazing origin story.", timestamp: new Date("2024-01-15") },
-          { userId: "3", text: "RDJ was perfect casting for Tony Stark", timestamp: new Date("2024-01-16") },
-        ],
-      },
-      {
-        movieId: {
-          id: "2",
-          title: "The Avengers",
-          year: 2012,
-          poster: "/generic-superhero-team-poster.png",
-        },
-        userProgress: [
-          { userId: "1", completed: true, reactions: ["🔥", "🔥"], pollRating: 5 },
-          { userId: "2", completed: true, reactions: ["🔥"], pollRating: 5 },
-          { userId: "3", completed: false, reactions: [], pollRating: null },
-          { userId: "4", completed: false, reactions: [], pollRating: null },
-          { userId: "5", completed: false, reactions: [], pollRating: null },
-        ],
-        comments: [{ userId: "1", text: "The team finally comes together!", timestamp: new Date("2024-01-20") }],
-      },
-    ],
-    seriesList: [
-      {
-        seriesId: {
-          id: "1",
-          title: "Loki",
-          year: 2021,
-          poster: "/loki-series-poster.jpg",
-        },
-        episodeProgress: [
-          {
-            seasonNumber: 1,
-            episodeNumber: 1,
-            userId: "1",
-            completed: true,
-            reactions: ["🔥"],
-            pollRating: 4,
-            comments: [{ userId: "1", text: "Great start to the series!", timestamp: new Date("2024-01-10") }],
-          },
-        ],
-      },
-    ],
-  },
+// Props type
+interface GroupDetailsPageProps {
+  params: {
+    id: string
+  }
 }
 
-export default function GroupDetailsPage({ params }: { params: { id: string } }) {
+const GroupDetailsPage: React.FC<GroupDetailsPageProps> = ({ params }) => {
   const [activeTab, setActiveTab] = useState("movies")
   const [userCompletionStatus, setUserCompletionStatus] = useState<{ [key: string]: boolean }>({})
+  const [group, setGroup] = useState<Group | null>(null)
+  const [loading, setLoading] = useState(true)
+  const user = useContext(AuthContext)?.user;
+  const currentUserId = user?.id || '';
 
-  const group = mockGroupData // Replace with actual API call using params.id
-  const currentUserId = "1" // Replace with actual current user ID from auth
+  // Fetch group on mount
+  useEffect(() => {
+    const fetchGroup = async () => {
+      try {
+        console.log("Params ",params);
+        const res = await api.get("/groups/group", { params: { id: params.id } })
+        setGroup(res.data.data) // because you return { success, message, data }
+      } catch (err) {
+        console.error("Failed to fetch group", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchGroup()
+  }, [params.id])
 
   const toggleCompletionStatus = (itemId: string, itemType: "movie" | "series") => {
     const currentStatus = getUserCompletionStatus(itemId, itemType)
@@ -95,7 +48,7 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
       [`${itemType}-${itemId}`]: !currentStatus,
     }))
 
-    // TODO: Make API call to update completion status in backend
+    // TODO: API call to backend to update progress
     console.log(`[v0] Toggling ${itemType} ${itemId} completion status to:`, !currentStatus)
   }
 
@@ -105,21 +58,32 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
       return userCompletionStatus[stateKey]
     }
 
-    // Fallback to original data
+    if (!group) return false
+
+    // fallback to original data
     if (itemType === "movie") {
-      const movie = group.watchlist.movieList.find((m) => m.movieId.id === itemId)
-      const currentUserProgress = movie?.userProgress.find((up) => up.userId === currentUserId)
-      return currentUserProgress?.completed || false
+      const movie = typeof group.watchlist === "object" && group.watchlist?.movieList.find((m: any) => m.movieId._id === itemId || m.movieId.id === itemId)
+      if (movie && typeof movie !== "boolean" && movie.userProgress) {
+        const currentUserProgress = movie.userProgress.find((up: any) => up.userId === currentUserId)
+        return currentUserProgress?.completed || false
+      }
+      return false
     } else {
-      const series = group.watchlist.seriesList.find((s) => s.seriesId.id === itemId)
-      const userEpisodeProgress = series?.episodeProgress.find((ep) => ep.userId === currentUserId)
-      return userEpisodeProgress?.completed || false
+      const series = typeof group.watchlist === "object" && group.watchlist?.seriesList.find((s: any) => s.seriesId._id === itemId || s.seriesId.id === itemId)
+      const userEpisodeProgress = typeof series === "object" && series?.episodeProgress.find((ep: any) => ep.userId === currentUserId)
+      if (userEpisodeProgress && typeof userEpisodeProgress === "object") {
+        return userEpisodeProgress.completed || false
+      }
+      return false
     }
   }
 
+  if (loading) return <div className="text-white">Loading...</div>
+  if (!group) return <div className="text-red-500">Group not found</div>
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
-      <GroupHeader groupName={group.name} groupDescription={group.description} />
+      <GroupHeader groupId={group._id} groupName={group.name ?? ""} groupDescription={group.description ?? ""} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -128,25 +92,25 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-gray-800 border border-gray-700">
                 <TabsTrigger value="movies" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
-                  Movies ({group.watchlist.movieList.length})
+                  Movies ({typeof group.watchlist === "object" && group.watchlist?.movieList ? group.watchlist.movieList.length : 0})
                 </TabsTrigger>
                 <TabsTrigger value="series" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
-                  Series ({group.watchlist.seriesList.length})
+                  Series ({typeof group.watchlist === "object" && group.watchlist?.seriesList ? group.watchlist.seriesList.length : 0})
                 </TabsTrigger>
               </TabsList>
 
               {/* Movies Tab */}
               <TabsContent value="movies" className="space-y-6 mt-6">
-                {group.watchlist.movieList.map((movie) => {
-                  const userCompleted = getUserCompletionStatus(movie.movieId.id, "movie")
+                {typeof group.watchlist === "object" && group.watchlist?.movieList.map((movie: MovieListItem) => {
+                  const userCompleted = getUserCompletionStatus(movie.movieId._id || movie.movieId._id, "movie")
                   return (
                     <MovieCard
-                      key={movie.movieId.id}
+                      key={movie.movieId._id}
                       movie={movie}
                       members={group.members}
                       currentUserId={currentUserId}
                       userCompleted={userCompleted}
-                      onToggleCompletion={(movieId : string) => toggleCompletionStatus(movieId, "movie")}
+                      onToggleCompletion={(movieId: string) => toggleCompletionStatus(movieId, "movie")}
                     />
                   )
                 })}
@@ -154,16 +118,16 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
 
               {/* Series Tab */}
               <TabsContent value="series" className="space-y-6 mt-6">
-                {group.watchlist.seriesList.map((series) => {
-                  const userCompleted = getUserCompletionStatus(series.seriesId.id, "series")
+                {typeof group.watchlist === "object" && group.watchlist?.seriesList.map((series: SeriesListItem) => {
+                  const userCompleted = getUserCompletionStatus(series.seriesId._id || series.seriesId._id, "series")
                   return (
                     <SeriesCard
-                      key={series.seriesId.id}
+                      key={series.seriesId._id}
                       series={series}
                       members={group.members}
                       currentUserId={currentUserId}
                       userCompleted={userCompleted}
-                      onToggleCompletion={(seriesId : string) => toggleCompletionStatus(seriesId, "series")}
+                      onToggleCompletion={(seriesId: string) => toggleCompletionStatus(seriesId, "series")}
                     />
                   )
                 })}
@@ -173,10 +137,17 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
 
           {/* Members Sidebar */}
           <div className="lg:col-span-1">
-            <MembersSidebar members={group.members} />
+            <MembersSidebar members={group.members.map((user: User) => ({
+              id: user._id,
+              name: user.username,
+              avatar: user.avatar || "", 
+              isAdmin: group.admins.includes(user._id),
+            }))} />
           </div>
         </div>
       </div>
     </div>
   )
 }
+
+export default GroupDetailsPage

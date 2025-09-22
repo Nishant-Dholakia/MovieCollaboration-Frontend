@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Film, TrendingUp, Star, Clock } from "lucide-react";
 import api from "../api/axios";
-import type { Movie , Rating} from "../types/movie";
+import type { MovieDetails } from "@/types/movie";
 // import WeaponsMovieCard from "../components/WeaponsMovieCard";
 
 
 
 const Home: React.FC = () => {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<MovieDetails[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,13 +27,14 @@ const Home: React.FC = () => {
 			console.log(movies);
 			const res = await api.get("/movie/trending");
 			// if (res.status === 200 && res.data && res.data.results) {
-			setMovies(res.data);
-			localStorage.setItem("trendingMovies", JSON.stringify(res.data)); 
+      console.log("Response from backend:", res.data.data);
+			setMovies(res.data.data);
+			localStorage.setItem("trendingMovies", JSON.stringify(res.data.data));
 
 		}
         
        catch (err) {
-        console.error("Error fetching movies:", err);
+        console.error("Error fetching movies");
         setError("Failed to load trending movies. Please try again later.");
       } finally {
         setLoading(false);
@@ -41,7 +42,7 @@ const Home: React.FC = () => {
     };
 
     fetchMovies();
-	console.log("Movies fetched:", movies);
+	// console.log("Movies fetched:", movies);
 
   }, []);
 
@@ -71,6 +72,7 @@ const Home: React.FC = () => {
           <Film className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <p className="text-red-400 text-lg mb-4">{error}</p>
           <button 
+          type="button"
             onClick={() => window.location.reload()}
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
           >
@@ -104,14 +106,14 @@ const Home: React.FC = () => {
       {/* Movies Grid */}
       <div className="px-6 pb-12">
         <div className="max-w-7xl mx-auto">
-          {movies.length === 0 ? (
+          {movies === undefined || movies.length === 0 ? (
             <div className="text-center py-12">
               <Film className="w-16 h-16 text-gray-500 mx-auto mb-4" />
               <p className="text-gray-400 text-lg">No trending movies found</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {movies.map((movie) => (
+              {movies.map((movie : MovieDetails) => (
                 <div
                   key={movie.imdbID}
                   className="bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden shadow-2xl hover:shadow-red-900/20 transition-all duration-300 hover:scale-[1.02] group cursor-pointer"
@@ -130,7 +132,7 @@ const Home: React.FC = () => {
                     <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
                       <span className="text-white font-semibold text-sm">
-                        {formatRating(Number(movie.imdbRating))}
+                        {formatRating(Number(movie.imdbRating) || 0)}
                       </span>
                     </div>
 

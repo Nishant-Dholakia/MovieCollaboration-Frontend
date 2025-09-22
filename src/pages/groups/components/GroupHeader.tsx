@@ -1,14 +1,78 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { UserPlus, Link2, Settings } from "lucide-react"
-
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { UserPlus, Link2, Settings, X } from "lucide-react";
+import { toast } from "react-hot-toast";
+import api from "@/api/axios";
 interface GroupHeaderProps {
-  groupName: string
-  groupDescription: string
+  groupName: string;
+  groupDescription: string;
+  groupId: string;
 }
 
-export function GroupHeader({ groupName, groupDescription }: GroupHeaderProps) {
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+}
+
+export function GroupHeader({ groupName, groupDescription, groupId }: GroupHeaderProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // Search users when typing
+  useEffect(() => {
+    if (!query) return setResults([]);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await api.get(`/user/similar`, {
+          params: { username: query },
+        });
+        const data: User[] = res.data.data;
+        setResults(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const handleAddMember = async () => {
+    if (!selectedUser) {
+      toast.error("Select a user!");
+      return;
+    }
+
+    try {
+      const res = await api.post(`/groups/addMember`, {
+        groupId,
+        userId: selectedUser._id,
+      });
+      const data = res.data;
+      console.log("Add member response:", res);
+      if (res.status === 200 && data.success) {
+        toast.success(`Added ${selectedUser.username} to the group!`);
+        setSelectedUser(null);
+        setQuery("");
+        setResults([]);
+        setIsModalOpen(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast.error(data.message || "Failed to add member");
+      }
+    } catch (err : any) {
+      console.error(err);
+      toast.error("Error : " + (err.response.data.message || "Failed to add member"));
+    }
+  };
+
   return (
     <div className="border-b border-gray-700 bg-black/20 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-6">
@@ -21,6 +85,7 @@ export function GroupHeader({ groupName, groupDescription }: GroupHeaderProps) {
             <Button
               variant="outline"
               className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white bg-transparent"
+              onClick={() => setIsModalOpen(true)}
             >
               <UserPlus className="w-4 h-4 mr-2" />
               Add Member
@@ -35,6 +100,52 @@ export function GroupHeader({ groupName, groupDescription }: GroupHeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Add Member Modal */}
+      {isModalOpen && (
+        <div className="fixed mt-20 inset-0 bg-black/50 flex items-center justify-center z-[99999]">
+              <div className="absolute inset-0 bg-black/50 z-[99998]" />
+          <div className="bg-gray-900 p-6 rounded-lg w-96 relative z-[100000]">
+            <button
+            type="button"
+              className="absolute top-2 right-2 text-gray-400 hover:text-white"
+              onClick={() => setIsModalOpen(false)}
+              title="Close"
+            >
+              <X />
+            </button>
+            <h2 className="text-xl font-bold text-white mb-4">Add Member</h2>
+            <input
+              type="text"
+              placeholder="Search by username"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full p-2 mb-2 rounded bg-gray-800 text-white border border-gray-600"
+            />
+            {results.length > 0 && (
+              <div className="max-h-40 overflow-y-auto bg-gray-800 rounded mb-4">
+                {results.map((user) => (
+                  <div
+                    key={user._id}
+                    className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                      selectedUser?._id === user._id ? "bg-gray-700" : ""
+                    }`}
+                    onClick={() => setSelectedUser(user)}
+                  >
+                    {user.username} ({user.email})
+                  </div>
+                ))}
+              </div>
+            )}
+            <Button
+              onClick={handleAddMember}
+              className="w-full bg-red-500 hover:bg-red-600"
+            >
+              Add
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 import { Star, Calendar, Clock, Trophy, DollarSign } from 'lucide-react';
-import type { Movie, Rating } from '../types/movie';
+import type { MovieDetails, Rating } from '../types/movie';
 
-export default function WeaponsMovieCard({movieData} : {movieData: Movie}) {
+export default function WeaponsMovieCard({movieData} : {movieData: MovieDetails}) {
   
 
   return (

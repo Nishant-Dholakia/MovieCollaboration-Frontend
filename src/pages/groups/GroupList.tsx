@@ -23,7 +23,7 @@ const GroupsListPage: React.FC = () => {
     try {
       setLoading(true);
 
-      const response  = await api.get("/group/all",{ withCredentials: true });
+      const response  = await api.get("/groups/all");
       console.log(response.data.data);
       setGroups(response.data.data);
       // console.log('groups ',groups);
@@ -41,9 +41,9 @@ const GroupsListPage: React.FC = () => {
     console.log("Navigate to create group page");
   };
 
-  const handleGroupClick = (groupId: string) => {
-    // navigate(`/groups/${groupId}`);
+  const handleGroupClick = async (groupId: string) => {
     console.log("Navigate to group:", groupId);
+    navigate(`/groups/${groupId}`);
   };
 
   if (loading) {

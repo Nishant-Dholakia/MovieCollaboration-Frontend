@@ -75,7 +75,7 @@ const CreateGroupPage: React.FC = () => {
 
     try {
       // Replace with actual API call
-      await api.post("/group/add", {
+      await api.post("/groups/add", {
         name: formData.name.trim(),
         description: formData.description.trim(),
       });
