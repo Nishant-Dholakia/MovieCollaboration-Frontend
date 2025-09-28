@@ -41,7 +41,7 @@ export interface Group {
 // Comment
 // =====================
 export interface Comment {
-  userId: User | string;
+  userId: string;
   text: string;
   timestamp: string;
 }
@@ -65,20 +65,27 @@ export interface Movie {
 // =====================
 // Series, Seasons, Episodes
 // =====================
+
+// Episode details from backend
 export interface Episode {
   episodeNumber: number;
   title?: string;
   imdbID?: string;
+  imdbRating?: string;
   released?: string;
   runtime?: string;
   plot?: string;
+  poster?: string;
+  genre?: string[];
 }
 
+// Season with list of episodes
 export interface Season {
   seasonNumber: number;
   episodes: Episode[];
 }
 
+// Full series
 export interface Series {
   _id: string;
   omdbId: string;
@@ -91,6 +98,8 @@ export interface Series {
   seasons: Season[];
 }
 
+
+
 // =====================
 // Progress Tracking
 // =====================
@@ -101,16 +110,17 @@ export interface UserMovieProgress {
   pollRating?: number;
 }
 
+
+// Episode progress per user
 export interface EpisodeProgress {
   seasonNumber: number;
   episodeNumber: number;
-  userId: User | string;
+  userId: string;
   completed: boolean;
   reactions: Array<'🔥' | '😂' | '❤️' | '😢' | '😡'>;
   pollRating?: number;
   comments: Comment[];
 }
-
 // =====================
 // Watchlist
 // =====================
@@ -119,11 +129,13 @@ export interface MovieListItem {
   userProgress: UserMovieProgress[];
   comments: Comment[];
 }
-
+// Series list wrapper (backend sends series + progress info for current user/team)
 export interface SeriesListItem {
-  seriesId: Series;
+  seriesId: Series;              // populated Series object
   episodeProgress: EpisodeProgress[];
 }
+
+
 
 export interface Watchlist {
   _id: string;

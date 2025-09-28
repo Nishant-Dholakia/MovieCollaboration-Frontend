@@ -7,7 +7,7 @@ import { Button } from "../../../components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar"
 import { Progress } from "../../../components/ui/progress"
 import { MessageCircle, ChevronDown, ChevronUp, Star, CheckCircle, XCircle } from "lucide-react"
-import type { Movie, MovieListItem, User } from "@/interfaces/interfaces"
+import type {  MovieListItem, User } from "@/interfaces/interfaces"
 
 interface MovieCardProps {
   movie: MovieListItem
@@ -22,7 +22,7 @@ export function MovieCard({ movie, members, currentUserId, userCompleted, onTogg
 
   const getCompletionPercentage = (userProgress: any[]) => {
     const completed = userProgress.filter((up) => up.completed).length
-    return Math.round((completed / userProgress.length) * 100)
+    return Math.round((completed / members.length) * 100)
   }
 
   const getAverageRating = (userProgress: any[]) => {
@@ -97,7 +97,7 @@ export function MovieCard({ movie, members, currentUserId, userCompleted, onTogg
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-300">Completion Progress</span>
                   <span className="text-sm text-gray-300">
-                    {movie.userProgress.filter((up) => up.completed).length}/{movie.userProgress.length} members
+                    {movie.userProgress.filter((up) => up.completed).length}/{members.length} members
                   </span>
                 </div>
                 <Progress value={getCompletionPercentage(movie.userProgress)} className="h-2 bg-gray-700" />

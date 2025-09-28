@@ -16,6 +16,12 @@ interface MembersSidebarProps {
 }
 
 export function MembersSidebar({ members }: MembersSidebarProps) {
+  // Sort admins to the top
+  const sortedMembers = members.slice().sort((a, b) => {
+    if (a.isAdmin === b.isAdmin) return 0
+    return a.isAdmin ? -1 : 1
+  })
+
   return (
     <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm sticky top-8">
       <CardHeader>
@@ -25,7 +31,7 @@ export function MembersSidebar({ members }: MembersSidebarProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {members.map((member) => (
+        {sortedMembers.map((member) => (
           <div key={member.id} className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
               <AvatarImage src={member.avatar || "/placeholder.svg"} />
