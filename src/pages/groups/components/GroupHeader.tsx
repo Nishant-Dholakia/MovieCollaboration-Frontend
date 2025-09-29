@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { UserPlus, Link2, Settings, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import api from "@/api/axios";
+import Modal from "./Modal";
+
 interface GroupHeaderProps {
   groupName: string;
   groupDescription: string;
@@ -101,51 +103,40 @@ export function GroupHeader({ groupName, groupDescription, groupId }: GroupHeade
         </div>
       </div>
 
-      {/* Add Member Modal */}
-      {isModalOpen && (
-        <div className="fixed mt-20 inset-0 bg-black/50 flex items-center justify-center z-[99999]">
-              <div className="absolute inset-0 bg-black/50 z-[99998]" />
-          <div className="bg-gray-900 p-6 rounded-lg w-96 relative z-[100000]">
-            <button
-            type="button"
-              className="absolute top-2 right-2 text-gray-400 hover:text-white"
-              onClick={() => setIsModalOpen(false)}
-              title="Close"
-            >
-              <X />
-            </button>
-            <h2 className="text-xl font-bold text-white mb-4">Add Member</h2>
-            <input
-              type="text"
-              placeholder="Search by username"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full p-2 mb-2 rounded bg-gray-800 text-white border border-gray-600"
-            />
-            {results.length > 0 && (
-              <div className="max-h-40 overflow-y-auto bg-gray-800 rounded mb-4">
-                {results.map((user) => (
-                  <div
-                    key={user._id}
-                    className={`p-2 cursor-pointer hover:bg-gray-700 ${
-                      selectedUser?._id === user._id ? "bg-gray-700" : ""
-                    }`}
-                    onClick={() => setSelectedUser(user)}
-                  >
-                    {user.username} ({user.email})
-                  </div>
-                ))}
+<Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add Member"
+      >
+        <input
+          type="text"
+          placeholder="Search by username"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full p-2 mb-2 rounded bg-gray-800 text-white border border-gray-600"
+        />
+        {results.length > 0 && (
+          <div className="max-h-40 overflow-y-auto bg-gray-800 rounded mb-4 relative z-[1000001]">
+            {results.map((user) => (
+              <div
+                key={user._id}
+                className={`p-2 cursor-pointer hover:bg-gray-700 ${
+                  selectedUser?._id === user._id ? "bg-gray-700" : ""
+                }`}
+                onClick={() => setSelectedUser(user)}
+              >
+                {user.username} ({user.email})
               </div>
-            )}
-            <Button
-              onClick={handleAddMember}
-              className="w-full bg-red-500 hover:bg-red-600"
-            >
-              Add
-            </Button>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+        <Button
+          onClick={handleAddMember}
+          className="w-full bg-red-500 hover:bg-red-600"
+        >
+          Add
+        </Button>
+      </Modal>
     </div>
   );
 }
